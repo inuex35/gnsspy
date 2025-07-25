@@ -41,6 +41,7 @@ def read_navFile(navigationFile):
     del nav[0:line]
     nav = [lines.replace('E ','E0') for lines in nav]
     nav = [lines.replace('D','E') for lines in nav]
+    nav = [lines.replace('d','e') for lines in nav]
     nav = [lines.replace('0-','0 -') for lines in nav]
     nav = [lines.replace('1-','1 -') for lines in nav]
     nav = [lines.replace('2-','2 -') for lines in nav]
@@ -51,6 +52,13 @@ def read_navFile(navigationFile):
     nav = [lines.replace('7-','7 -') for lines in nav]
     nav = [lines.replace('8-','8 -') for lines in nav]
     nav = [lines.replace('9-','9 -') for lines in nav]
+    # Handle "not provided" values
+    nav = [lines.replace('not provided', '0.0') for lines in nav]
+    nav = [lines.replace('NOT PROVIDED', '0.0') for lines in nav]
+    nav = [lines.replace('Not Provided', '0.0') for lines in nav]
+    nav = [lines.replace('nan', '0.0') for lines in nav]
+    nav = [lines.replace('NaN', '0.0') for lines in nav]
+    nav = [lines.replace('NAN', '0.0') for lines in nav]
     nav = [lines.split() for lines in nav]
     ephemeris_list=[]
     svList = []
@@ -92,24 +100,33 @@ def read_navFile(navigationFile):
                                   minute = minute,
                                   second = second)
         # --------------------------------------------------------------
-        clockBias = nav[0][7] 
-        relFeqBias = nav[0][8]
-        transmissionTime = nav[0][9]
+        # Handle missing values
+        clockBias = float(nav[0][7]) if len(nav[0]) > 7 and isfloat(nav[0][7]) else 0.0
+        relFeqBias = float(nav[0][8]) if len(nav[0]) > 8 and isfloat(nav[0][8]) else 0.0
+        transmissionTime = float(nav[0][9]) if len(nav[0]) > 9 and isfloat(nav[0][9]) else 0.0
         if GLONASS or SBAS:
-            x, vx, ax = float(nav[1][0]), float(nav[1][1]), float(nav[1][2])
-            y, vy, ay = float(nav[2][0]), float(nav[2][1]), float(nav[2][2])
-            z, vz, az = float(nav[3][0]), float(nav[3][1]), float(nav[3][2])
-            health = float(nav[1][3])
-            freqNumber = float(nav[2][3])
-            operationDay = float(nav[3][3])
+            x = float(nav[1][0]) if len(nav[1]) > 0 and isfloat(nav[1][0]) else 0.0
+            vx = float(nav[1][1]) if len(nav[1]) > 1 and isfloat(nav[1][1]) else 0.0
+            ax = float(nav[1][2]) if len(nav[1]) > 2 and isfloat(nav[1][2]) else 0.0
+            y = float(nav[2][0]) if len(nav[2]) > 0 and isfloat(nav[2][0]) else 0.0
+            vy = float(nav[2][1]) if len(nav[2]) > 1 and isfloat(nav[2][1]) else 0.0
+            ay = float(nav[2][2]) if len(nav[2]) > 2 and isfloat(nav[2][2]) else 0.0
+            z = float(nav[3][0]) if len(nav[3]) > 0 and isfloat(nav[3][0]) else 0.0
+            vz = float(nav[3][1]) if len(nav[3]) > 1 and isfloat(nav[3][1]) else 0.0
+            az = float(nav[3][2]) if len(nav[3]) > 2 and isfloat(nav[3][2]) else 0.0
+            health = float(nav[1][3]) if len(nav[1]) > 3 and isfloat(nav[1][3]) else 0.0
+            freqNumber = float(nav[2][3]) if len(nav[2]) > 3 and isfloat(nav[2][3]) else 0.0
+            operationDay = float(nav[3][3]) if len(nav[3]) > 3 and isfloat(nav[3][3]) else 0.0
             roota, toe, m0, e, delta_n, smallomega, cus, cuc, crs, crc, cis, cic, idot, i0, bigomega0, bigomegadot = [np.nan for _ in range(16)]
+            iode, iodc, sva, week, tgd, fit, code = [0 for _ in range(7)]
             if PRN == PRN_old and epoch == epoch_old:
                 ephemeris_list[-1] = [PRN, epoch, clockBias, relFeqBias, 
                                 transmissionTime, roota, toe, m0, e, delta_n, 
                                 smallomega, cus, cuc, crs, crc, cis, cic, 
                                 idot, i0, bigomega0, bigomegadot,
                                 x, y, z, vx, vy, vz, ax, ay, az,
-                                health, freqNumber, operationDay]
+                                health, freqNumber, operationDay,
+                                iode, iodc, sva, week, tgd, fit, code]
             else:
                 svList.append(PRN)
                 ephemeris_list.append([PRN, epoch, clockBias, relFeqBias, 
@@ -117,33 +134,60 @@ def read_navFile(navigationFile):
                                     smallomega, cus, cuc, crs, crc, cis, cic, 
                                     idot, i0, bigomega0, bigomegadot,
                                     x, y, z, vx, vy, vz, ax, ay, az,
-                                    health, freqNumber, operationDay])
+                                    health, freqNumber, operationDay,
+                                    iode, iodc, sva, week, tgd, fit, code])
             del nav[0:4]
         else:
-            e = float(nav[2][1])
-            m0 = float(nav[1][3])
-            i0 = float(nav[4][0])
-            toe = float(nav[3][0])
-            cus = float(nav[2][2])
-            cuc = float(nav[2][0])
-            crs = float(nav[1][1])
-            crc = float(nav[4][1])
-            cis = float(nav[3][3])
-            cic = float(nav[3][1])
-            idot = float(nav[5][0])
-            roota = float(nav[2][3])
-            delta_n = float(nav[1][2])
-            smallomega = float(nav[4][2])
-            bigomega0 = float(nav[3][2])
-            bigomegadot = float(nav[4][3])
-            x, y, z, vx, vy, vz, ax, ay, az, health, freqNumber, operationDay = [np.nan for _ in range(12)]
+            # GPS/GALILEO/QZSS/BDS ephemeris
+            # Line 1 (already read): clock bias, clock drift, clock drift rate
+            # Line 2: IODE, Crs, Delta n, M0
+            iode = int(float(nav[1][0])) if len(nav[1]) > 0 and isfloat(nav[1][0]) else 0
+            crs = float(nav[1][1]) if len(nav[1]) > 1 and isfloat(nav[1][1]) else 0.0
+            delta_n = float(nav[1][2]) if len(nav[1]) > 2 and isfloat(nav[1][2]) else 0.0
+            m0 = float(nav[1][3]) if len(nav[1]) > 3 and isfloat(nav[1][3]) else 0.0
+            
+            # Line 3: Cuc, e, Cus, sqrt(A)
+            cuc = float(nav[2][0]) if len(nav[2]) > 0 and isfloat(nav[2][0]) else 0.0
+            e = float(nav[2][1]) if len(nav[2]) > 1 and isfloat(nav[2][1]) else 0.0
+            cus = float(nav[2][2]) if len(nav[2]) > 2 and isfloat(nav[2][2]) else 0.0
+            roota = float(nav[2][3]) if len(nav[2]) > 3 and isfloat(nav[2][3]) else 0.0
+            
+            # Line 4: Toe, Cic, OMEGA0, Cis
+            toe = float(nav[3][0]) if len(nav[3]) > 0 and isfloat(nav[3][0]) else 0.0
+            cic = float(nav[3][1]) if len(nav[3]) > 1 and isfloat(nav[3][1]) else 0.0
+            bigomega0 = float(nav[3][2]) if len(nav[3]) > 2 and isfloat(nav[3][2]) else 0.0
+            cis = float(nav[3][3]) if len(nav[3]) > 3 and isfloat(nav[3][3]) else 0.0
+            
+            # Line 5: i0, Crc, omega, OMEGA DOT
+            i0 = float(nav[4][0]) if len(nav[4]) > 0 and isfloat(nav[4][0]) else 0.0
+            crc = float(nav[4][1]) if len(nav[4]) > 1 and isfloat(nav[4][1]) else 0.0
+            smallomega = float(nav[4][2]) if len(nav[4]) > 2 and isfloat(nav[4][2]) else 0.0
+            bigomegadot = float(nav[4][3]) if len(nav[4]) > 3 and isfloat(nav[4][3]) else 0.0
+            
+            # Line 6: IDOT, L2 Codes, GPS Week, L2 P data flag
+            idot = float(nav[5][0]) if len(nav) > 5 and len(nav[5]) > 0 and isfloat(nav[5][0]) else 0.0
+            code = int(float(nav[5][1])) if len(nav) > 5 and len(nav[5]) > 1 and isfloat(nav[5][1]) else 0
+            week = int(float(nav[5][2])) if len(nav) > 5 and len(nav[5]) > 2 and isfloat(nav[5][2]) else 0
+            
+            # Line 7: SV accuracy, SV health, TGD, IODC
+            sva = float(nav[6][0]) if len(nav) > 6 and len(nav[6]) > 0 and isfloat(nav[6][0]) else 0.0
+            health = float(nav[6][1]) if len(nav) > 6 and len(nav[6]) > 1 and isfloat(nav[6][1]) else 0.0
+            tgd = float(nav[6][2]) if len(nav) > 6 and len(nav[6]) > 2 and isfloat(nav[6][2]) else 0.0
+            iodc = int(float(nav[6][3])) if len(nav) > 6 and len(nav[6]) > 3 and isfloat(nav[6][3]) else 0
+            
+            # Line 8: Transmission time, Fit interval
+            tot = float(nav[7][0]) if len(nav) > 7 and len(nav[7]) > 0 and isfloat(nav[7][0]) else 0.0
+            fit = float(nav[7][1]) if len(nav) > 7 and len(nav[7]) > 1 and isfloat(nav[7][1]) else 4.0
+            
+            x, y, z, vx, vy, vz, ax, ay, az, freqNumber, operationDay = [np.nan for _ in range(11)]
             if PRN == PRN_old and epoch == epoch_old:
                 ephemeris_list[-1] = [PRN, epoch, clockBias, relFeqBias, 
                                 transmissionTime, roota, toe, m0, e, delta_n, 
                                 smallomega, cus, cuc, crs, crc, cis, cic, 
                                 idot, i0, bigomega0, bigomegadot,
                                 x, y, z, vx, vy, vz, ax, ay, az,
-                                health, freqNumber, operationDay]
+                                health, freqNumber, operationDay,
+                                iode, iodc, sva, week, tgd, fit, code]
             else:
                 svList.append(PRN)
                 ephemeris_list.append([PRN, epoch, clockBias, relFeqBias, 
@@ -151,7 +195,8 @@ def read_navFile(navigationFile):
                                     smallomega, cus, cuc, crs, crc, cis, cic, 
                                     idot, i0, bigomega0, bigomegadot,
                                     x, y, z, vx, vy, vz, ax, ay, az,
-                                    health, freqNumber, operationDay])
+                                    health, freqNumber, operationDay,
+                                    iode, iodc, sva, week, tgd, fit, code])
             del nav[0:8]
         PRN_old = PRN
         epoch_old = epoch
@@ -161,7 +206,8 @@ def read_navFile(navigationFile):
                 "smallomega", "cus", "cuc", "crs", "crc", "cis", "cic", 
                 "idot", "i0", "bigomega0", "bigomegadot",
                 "x", "y", "z", "vx", "vy", "vz", "ax", "ay", "az",
-                "health", "freqNumber", "operationDay"]
+                "health", "freqNumber", "operationDay",
+                "iode", "iodc", "sva", "week", "tgd", "fit", "code"]
     ephemeris = pd.DataFrame(ephemeris_list, index=svList, columns=columnNames)
     ephemeris.index.name = 'SV'
     ephemeris["epoch"] = ephemeris.Epoch
