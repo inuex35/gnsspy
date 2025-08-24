@@ -108,14 +108,14 @@ def read_navFile(navigationFile):
             x = float(nav[1][0]) if len(nav[1]) > 0 and isfloat(nav[1][0]) else 0.0
             vx = float(nav[1][1]) if len(nav[1]) > 1 and isfloat(nav[1][1]) else 0.0
             ax = float(nav[1][2]) if len(nav[1]) > 2 and isfloat(nav[1][2]) else 0.0
+            health = float(nav[1][3]) if len(nav[1]) > 3 and isfloat(nav[1][3]) else 0.0
             y = float(nav[2][0]) if len(nav[2]) > 0 and isfloat(nav[2][0]) else 0.0
             vy = float(nav[2][1]) if len(nav[2]) > 1 and isfloat(nav[2][1]) else 0.0
             ay = float(nav[2][2]) if len(nav[2]) > 2 and isfloat(nav[2][2]) else 0.0
+            freqNumber = float(nav[2][3]) if len(nav[2]) > 3 and isfloat(nav[2][3]) else 0.0
             z = float(nav[3][0]) if len(nav[3]) > 0 and isfloat(nav[3][0]) else 0.0
             vz = float(nav[3][1]) if len(nav[3]) > 1 and isfloat(nav[3][1]) else 0.0
             az = float(nav[3][2]) if len(nav[3]) > 2 and isfloat(nav[3][2]) else 0.0
-            health = float(nav[1][3]) if len(nav[1]) > 3 and isfloat(nav[1][3]) else 0.0
-            freqNumber = float(nav[2][3]) if len(nav[2]) > 3 and isfloat(nav[2][3]) else 0.0
             operationDay = float(nav[3][3]) if len(nav[3]) > 3 and isfloat(nav[3][3]) else 0.0
             roota, toe, m0, e, delta_n, smallomega, cus, cuc, crs, crc, cis, cic, idot, i0, bigomega0, bigomegadot = [np.nan for _ in range(16)]
             iode, iodc, sva, week, tgd, fit, code = [0 for _ in range(7)]
