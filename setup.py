@@ -2,19 +2,20 @@
 GNSSpy setup file
 Mustafa Serkan ISIK and Volkan Ozbey
 """
-from setuptools import setup
+from setuptools import setup, find_packages
 import re
-
-try:
-    # for pip >= 10
-    from pip._internal.req import parse_requirements
-except ImportError:
-    # for pip <= 9.0.3
-    from pip.req import parse_requirements
+import os
 
 def load_requirements(fname):
-    reqs = parse_requirements(fname, session="test")
-    return [str(ir.requirement) for ir in reqs]
+    """Load requirements from a requirements.txt file."""
+    requirements = []
+    if os.path.exists(fname):
+        with open(fname, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    requirements.append(line)
+    return requirements
 
 def get_property(prop, project):
     result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(prop), open(project + '/__init__.py').read())
@@ -22,12 +23,7 @@ def get_property(prop, project):
 
 setup(
   name = 'gnsspy',
-  packages = ["gnsspy",
-              "gnsspy.io",
-              "gnsspy.position",
-              "gnsspy.funcs",
-              "gnsspy.geodesy",
-              "gnsspy.doc"],
+  packages = find_packages(),
   install_requires=load_requirements("requirements.txt"),
   include_package_data = True,
   package_data = {"gnsspy.doc": ["IGSList.txt"],
@@ -40,7 +36,21 @@ setup(
   license = 'MIT',
   url = 'https://github.com/GNSSpy-Project/gnsspy',
   download_url = 'https://github.com/GNSSpy-Project/gnsspy/archive/0.1.tar.gz',
-  classifiers = [],
+  classifiers = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Topic :: Scientific/Engineering',
+  ],
+  python_requires='>=3.6',
   zip_safe=False
 )   
 
